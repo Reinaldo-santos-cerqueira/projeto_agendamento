@@ -11,12 +11,15 @@ class Agendamento extends Model
     use HasFactory;
 
     protected $fillable = [
-        'id', 'usuario_id', 'hora_inicio', 'hora_fim', 'data', 'avaliacao',
+        'id', 'usuario_id', 'hora_inicio', 'hora_fim', 'data', 'avaliacao', 'confirmado',
     ];
 
     protected $keyType = 'string'; 
     public $incrementing = false;
-    protected $dates = ['data']; 
+    protected $casts = [
+        'data' => 'datetime',
+        'confirmado' => 'boolean',
+    ];    
     
     protected static function boot()
     {
@@ -25,5 +28,9 @@ class Agendamento extends Model
         static::creating(function ($model) {
             $model->id = (string) Str::uuid();
         });
+    }
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'usuario_id');
     }
 }

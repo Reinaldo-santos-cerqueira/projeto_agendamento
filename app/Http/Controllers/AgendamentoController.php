@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Agendamento;
+use Carbon\Carbon;
 
 class AgendamentoController extends Controller
 {
@@ -15,13 +16,26 @@ class AgendamentoController extends Controller
 
     public function show($id)
     {
-        $agendamento = Agendamento::find($id);
+        $agendamento = Agendamento::with('usuario')->find($id);
 
         if (!$agendamento) {
             return response()->json(['message' => 'Agendamento não encontrado'], 404);
         }
 
-        return response()->json($agendamento);
+        return response()->json([
+            'id' => $agendamento->id,
+            'usuario_id' => $agendamento->usuario_id,
+            'hora_inicio' => $agendamento->hora_inicio,
+            'hora_fim' => $agendamento->hora_fim,
+            'data' => $agendamento->data->format('Y-m-d'),
+            'avaliacao' => $agendamento->avaliacao,
+            'confirmado' => $agendamento->confirmado,
+            'usuario' => [
+                'id' => $agendamento->usuario->id,
+                'nome' => $agendamento->usuario->nome,
+                'identificador' => $agendamento->usuario->identificador,
+            ]
+        ]);
     }
 
     public function getAll()
@@ -34,17 +48,46 @@ class AgendamentoController extends Controller
                 'usuario_id' => $agendamento->usuario_id,
                 'hora_inicio' => $agendamento->hora_inicio,
                 'hora_fim' => $agendamento->hora_fim,
-                'data' => $agendamento->data->format('Y-m-d'), // Formato da data
+                'data' => $agendamento->data->format('Y-m-d'),
                 'avaliacao' => $agendamento->avaliacao,
                 'dia' => $agendamento->data->format('d'),
                 'mes' => $agendamento->data->format('m'),
                 'ano' => $agendamento->data->format('Y'),
+                'confirmado' => $agendamento->confirmado,
             ];
         });
 
         return response()->json($agendamentosFormatted);
     }
+    public function filterByDate(Request $request)
+    {
+        $data = $request->query('data');
 
+        try {
+            $carbonDate = Carbon::parse($data);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Data inválida.'], 400);
+        }
+
+        $agendamentos = Agendamento::whereDate('data', $carbonDate)->get();
+
+        $agendamentosFormatted = $agendamentos->map(function ($agendamento) use ($carbonDate) {
+            return [
+                'id' => $agendamento->id,
+                'usuario_id' => $agendamento->usuario_id,
+                'hora_inicio' => $agendamento->hora_inicio,
+                'hora_fim' => $agendamento->hora_fim,
+                'data' => $carbonDate->format('Y-m-d'),
+                'avaliacao' => $agendamento->avaliacao,
+                'dia' => $carbonDate->format('d'),
+                'mes' => $carbonDate->format('m'),
+                'ano' => $carbonDate->format('Y'),
+                'confirmado' => $agendamento->confirmado,
+            ];
+        });
+
+        return response()->json($agendamentosFormatted);
+    }
 
     public function store(Request $request)
     {
@@ -54,6 +97,7 @@ class AgendamentoController extends Controller
             'hora_fim' => 'required|string|size:2',
             'data' => 'required|date',
             'avaliacao' => 'nullable|integer',
+            'confirmado' => 'nullable|boolean',
         ]);
 
         $agendamento = Agendamento::create($request->all());
@@ -74,7 +118,8 @@ class AgendamentoController extends Controller
             'hora_fim' => 'nullable|string',
             'data' => 'nullable|date',
             'avaliacao' => 'nullable|integer',
-            'usuario_id' => 'nullable|string'
+            'usuario_id' => 'nullable|string',
+            'confirmado' => 'nullable|boolean',
         ]);
     
         $agendamento->update($request->only([
