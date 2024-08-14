@@ -23,3 +23,4 @@ Route::middleware('auth:sanctum')->post('agendamentos', [AgendamentoController::
 Route::middleware('auth:sanctum')->get('agendamentos', [AgendamentoController::class, 'getAll']);
 Route::middleware('auth:sanctum')->put('agendamentos/{id}', [AgendamentoController::class, 'update']);
 Route::middleware('auth:sanctum')->get('/agendamentos', [AgendamentoController::class, 'filterByDate']);
+Route::middleware('auth:sanctum')->get('/agendamentos/usuario/todos', [AgendamentoController::class, 'getByUsuarioId']);

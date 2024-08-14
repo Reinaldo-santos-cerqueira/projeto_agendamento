@@ -17,11 +17,11 @@ class AgendamentoController extends Controller
     public function show($id)
     {
         $agendamento = Agendamento::with('usuario')->find($id);
-
+    
         if (!$agendamento) {
             return response()->json(['message' => 'Agendamento não encontrado'], 404);
         }
-
+    
         return response()->json([
             'id' => $agendamento->id,
             'usuario_id' => $agendamento->usuario_id,
@@ -30,6 +30,9 @@ class AgendamentoController extends Controller
             'data' => $agendamento->data->format('Y-m-d'),
             'avaliacao' => $agendamento->avaliacao,
             'confirmado' => $agendamento->confirmado,
+            'dia' => $agendamento->data->format('d'),
+            'mes' => $agendamento->data->format('m'),
+            'ano' => $agendamento->data->format('Y'),
             'usuario' => [
                 'id' => $agendamento->usuario->id,
                 'nome' => $agendamento->usuario->nome,
@@ -37,7 +40,45 @@ class AgendamentoController extends Controller
             ]
         ]);
     }
-
+    public function getByUsuarioId()
+    {
+        $usuario = auth()->user();
+    
+        if (!$usuario) {
+            return response()->json(['message' => 'Usuário não autenticado'], 401);
+        }
+    
+        $agendamentos = Agendamento::with('usuario')
+            ->where('usuario_id', $usuario->id)
+            ->get();
+    
+        if ($agendamentos->isEmpty()) {
+            return response()->json(['message' => 'Nenhum agendamento encontrado para o usuário especificado'], 204);
+        }
+    
+        $agendamentosFormatados = $agendamentos->map(function ($agendamento) {
+            return [
+                'id' => $agendamento->id,
+                'usuario_id' => $agendamento->usuario_id,
+                'hora_inicio' => $agendamento->hora_inicio,
+                'hora_fim' => $agendamento->hora_fim,
+                'data' => $agendamento->data->format('Y-m-d'),
+                'avaliacao' => $agendamento->avaliacao,
+                'confirmado' => $agendamento->confirmado,
+                'dia' => $agendamento->data->format('d'),
+                'mes' => $agendamento->data->format('m'),
+                'ano' => $agendamento->data->format('Y'),
+                'usuario' => [
+                    'id' => $agendamento->usuario->id,
+                    'nome' => $agendamento->usuario->nome,
+                    'identificador' => $agendamento->usuario->identificador,
+                ]
+            ];
+        });
+    
+        return response()->json($agendamentosFormatados);
+    }
+    
     public function getAll()
     {
         $agendamentos = Agendamento::all();
@@ -123,7 +164,7 @@ class AgendamentoController extends Controller
         ]);
     
         $agendamento->update($request->only([
-            'hora_inicio', 'hora_fim', 'data', 'avaliacao', 'usuario_id'
+            'hora_inicio', 'hora_fim', 'data', 'avaliacao', 'usuario_id','confirmado'
         ]));
     
         // Retornar o agendamento atualizado como JSON
