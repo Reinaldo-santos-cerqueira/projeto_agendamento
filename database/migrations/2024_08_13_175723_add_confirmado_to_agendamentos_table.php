@@ -9,7 +9,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('agendamentos', function (Blueprint $table) {
-            $table->boolean('confirmado')->default(false); // Adiciona o campo 'confirmado'
+            $table->boolean('confirmado')->default(false);
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('agendamentos', function (Blueprint $table) {
-            $table->dropColumn('confirmado'); // Remove o campo 'confirmado'
+            $table->dropColumn('confirmado');
         });
     }
 };

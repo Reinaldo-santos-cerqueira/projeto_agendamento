@@ -31,7 +31,6 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Revoga o token ou termina a sessão
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logout realizado com sucesso']);

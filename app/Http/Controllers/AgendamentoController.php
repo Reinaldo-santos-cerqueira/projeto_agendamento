@@ -167,7 +167,6 @@ class AgendamentoController extends Controller
             'hora_inicio', 'hora_fim', 'data', 'avaliacao', 'usuario_id','confirmado'
         ]));
     
-        // Retornar o agendamento atualizado como JSON
         return response()->json($agendamento);
     }
     

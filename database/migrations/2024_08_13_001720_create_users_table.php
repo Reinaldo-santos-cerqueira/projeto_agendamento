@@ -16,14 +16,10 @@ return new class extends Migration
             $table->string('nome');
             $table->string('identificador')->unique();
             $table->string('senha');
-            $table->char('tipo', 1)->default('P'); // 'P' or 'F'
+            $table->char('tipo', 1)->default('P');
             $table->timestamps();
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');
